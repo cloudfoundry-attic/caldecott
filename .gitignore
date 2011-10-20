@@ -1,4 +1,6 @@
-Gemfile.lock
-.build
+*~
+\#*\#
+.\#*
+.bundle
+spec/coverage
 *.gem
-.DS_Store

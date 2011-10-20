@@ -51,8 +51,11 @@ module Caldecott
       end
 
       module SinatraTest
+        AUTH_TOKEN = 'this_is_the_auth_token'
+
         class App < Caldecott::Server::HttpTunnel
           set :environment, :test
+          set :auth_token, AUTH_TOKEN
           def self.options
             self.settings
           end

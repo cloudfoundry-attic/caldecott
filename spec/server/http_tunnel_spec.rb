@@ -214,6 +214,10 @@ describe 'Server' do
     include Sinatra::Async::Test::Methods
     include Caldecott::Test::Server::SinatraTest
 
+    before do
+      header 'Auth-Token', AUTH_TOKEN
+    end
+
     it "should return banner via GET" do
       get '/'
       last_response.should be_ok
@@ -233,6 +237,14 @@ describe 'Server' do
         apost '/tunnels', { :host => @host, :port => @port }.to_json
       end
       em_async_continue
+    end
+
+    it "should return 404 for unauthenticated requests" do
+      header 'Auth-Token', nil
+      ['/', '/tunnels'].each do |uri|
+        get uri
+        last_response.status.should == 404
+      end
     end
 
     describe 'tunnel operations' do

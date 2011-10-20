@@ -10,23 +10,24 @@ describe 'Client Tunnel' do
     @log = Logger.new StringIO.new
     @host = 'foo'
     @port = 12345
+    @auth_token = 'this_is_an_auth_token'
   end
 
   # FIXME: we need an https and wss test
 
   it 'should start an http tunnel when given a http url' do
     url = 'http://tunnel.com/'
-    Caldecott::Client::HttpTunnel.should_receive(:new).once.with(@log, url, @host, @port)
-    Caldecott::Client::Tunnel.start(@log, url, @host, @port)
+    Caldecott::Client::HttpTunnel.should_receive(:new).once.with(@log, url, @host, @port, @auth_token)
+    Caldecott::Client::Tunnel.start(@log, url, @host, @port, @auth_token)
   end
 
   it 'should start a websocket tunnel when given a websocket url' do
     url = 'ws://tunnel.com/'
-    Caldecott::Client::WebSocketTunnel.should_receive(:new).once.with(@log, url, @host, @port)
-    Caldecott::Client::Tunnel.start(@log, url, @host, @port)
+    Caldecott::Client::WebSocketTunnel.should_receive(:new).once.with(@log, url, @host, @port, @auth_token)
+    Caldecott::Client::Tunnel.start(@log, url, @host, @port, @auth_token)
   end
 
   it 'should raise an error when given an invalid url' do
-    lambda { Caldecott::Client::Tunnel.start(@log, 'wtf://tunnel.com/', @host, @port) }.should raise_exception
+    lambda { Caldecott::Client::Tunnel.start(@log, 'wtf://tunnel.com/', @host, @port, @auth_token) }.should raise_exception
   end
 end

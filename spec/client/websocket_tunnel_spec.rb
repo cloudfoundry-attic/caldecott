@@ -10,13 +10,14 @@ describe 'Client WebSocket Tunnel' do
     @host = 'foo'
     @port = 12345
     @base_url = 'ws://tunnel/'
+    @auth_token = 'this_is_an_auth_token'
 
     @ws_request = mock(EM::HttpRequest)
     @ws_request.should_receive(:get).once.and_return(@ws_request)
 
     EM::HttpRequest.should_receive(:new).once.with("#{@base_url}/websocket/#{@host}/#{@port}").and_return(@ws_request)
 
-    @tunnel = Caldecott::Client::WebSocketTunnel.new(@log, @base_url, @host, @port)
+    @tunnel = Caldecott::Client::WebSocketTunnel.new(@log, @base_url, @host, @port, @auth_token)
   end
 
   describe '#onopen' do

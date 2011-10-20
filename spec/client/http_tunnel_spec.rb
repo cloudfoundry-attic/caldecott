@@ -12,6 +12,7 @@ describe 'Client HTTP Tunnel' do
     @port = 12345
     @base_url = 'http://caldecott.cloudfoundry.com'
     @times_called = {}
+    @auth_token = "this_is_the_token"
     tunnel_callbacks.each { |c| @times_called[c] = 0 }
   end
 
@@ -22,7 +23,7 @@ describe 'Client HTTP Tunnel' do
   it 'should attempt to retry timed out connections' do
     with_em_timeout do
       stub_request(:post, "#{@base_url}/tunnels").to_timeout
-      tunnel = Caldecott::Client::HttpTunnel.new(@log, @base_url, @host, @port)
+      tunnel = Caldecott::Client::HttpTunnel.new(@log, @base_url, @host, @port, @auth_token)
       setup_tunnel_callbacks tunnel, :stop_onclose => true
 
       @validate = lambda do
@@ -138,7 +139,7 @@ describe 'Client HTTP Tunnel' do
       with_em_timeout do
         @conn.should_receive(:trigger_on_close) { EM.stop }
         stub_request(:get, "#{@uri}/1").to_timeout
-        reader = Caldecott::Client::HttpTunnel::Reader.new(@log, @uri, @conn)
+        reader = Caldecott::Client::HttpTunnel::Reader.new(@log, @uri, @conn, @auth_token)
 
         @validate = lambda do
           a_request(:get, "#{@uri}/1").should have_been_made.times(Caldecott::Client::HttpTunnel::MAX_RETRIES)
@@ -171,7 +172,7 @@ describe 'Client HTTP Tunnel' do
 
         stub_request(:get, "#{@uri}/1").to_return(:status => 200, :body => data)
         stub_request(:get, "#{@uri}/2").to_return(:status => 200, :body => more_data)
-        reader = Caldecott::Client::HttpTunnel::Reader.new(@log, @uri, @conn)
+        reader = Caldecott::Client::HttpTunnel::Reader.new(@log, @uri, @conn, @auth_token)
       end
     end
   end
@@ -187,7 +188,7 @@ describe 'Client HTTP Tunnel' do
         data = 'some data to send via the writer'
         @conn.should_receive(:trigger_on_close) { EM.stop }
         stub_request(:put, "#{@uri}/1").to_timeout
-        writer = Caldecott::Client::HttpTunnel::Writer.new(@log, @uri, @conn)
+        writer = Caldecott::Client::HttpTunnel::Writer.new(@log, @uri, @conn, @auth_token)
         EM.next_tick { writer.send_data data }
 
         @validate = lambda do
@@ -213,7 +214,7 @@ describe 'Client HTTP Tunnel' do
         writer = nil
         data = 'some data sent by the writer'
         more_data = 'some more data sent by the writer'
-        writer = Caldecott::Client::HttpTunnel::Writer.new(@log, @uri, @conn)
+        writer = Caldecott::Client::HttpTunnel::Writer.new(@log, @uri, @conn, @auth_token)
         EM.next_tick do
           writer.send_data data
           EM.next_tick do
@@ -235,7 +236,7 @@ describe 'Client HTTP Tunnel' do
     it 'should not send data when closing' do
       with_em_timeout do
         data = 'some data that should not get sent'
-        writer = Caldecott::Client::HttpTunnel::Writer.new(@log, @uri, @conn)
+        writer = Caldecott::Client::HttpTunnel::Writer.new(@log, @uri, @conn, @auth_token)
         EM.next_tick do
           writer.close
           writer.send_data data

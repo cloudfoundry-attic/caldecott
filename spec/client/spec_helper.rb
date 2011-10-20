@@ -34,7 +34,7 @@ module Caldecott
           @request.to_raise(opts[:raise]) if opts[:raise]
 
           if opts[:raise]
-            lambda { Caldecott::Client::HttpTunnel.new(@log, @base_url, @host, @port) }.should raise_exception
+            lambda { Caldecott::Client::HttpTunnel.new(@log, @base_url, @host, @port, @auth_token) }.should raise_exception
             @validate = lambda do
               @times_called[:onopen].should == 0
               @times_called[:onclose].should == 0
@@ -45,7 +45,7 @@ module Caldecott
             end
             EM.stop
           else
-            tunnel = Caldecott::Client::HttpTunnel.new(@log, @base_url, @host, @port)
+            tunnel = Caldecott::Client::HttpTunnel.new(@log, @base_url, @host, @port, @auth_token)
             setup_tunnel_callbacks tunnel, :stop_onclose => true
 
             @validate = lambda do
@@ -70,9 +70,9 @@ module Caldecott
 
         @writer = mock(Caldecott::Client::HttpTunnel::Writer)
 
-        Caldecott::Client::HttpTunnel::Reader.should_receive(:new).with(@log, "#{@base_url}/#{@path_out}", instance_of(Caldecott::Client::HttpTunnel))
-        Caldecott::Client::HttpTunnel::Writer.should_receive(:new).with(@log, "#{@base_url}/#{@path_in}", instance_of(Caldecott::Client::HttpTunnel)).and_return(@writer)
-        Caldecott::Client::HttpTunnel.new(@log, @base_url, @host, @port)
+        Caldecott::Client::HttpTunnel::Reader.should_receive(:new).with(@log, "#{@base_url}/#{@path_out}", instance_of(Caldecott::Client::HttpTunnel), @auth_token)
+        Caldecott::Client::HttpTunnel::Writer.should_receive(:new).with(@log, "#{@base_url}/#{@path_in}", instance_of(Caldecott::Client::HttpTunnel), @auth_token).and_return(@writer)
+        Caldecott::Client::HttpTunnel.new(@log, @base_url, @host, @port, @auth_token)
       end
 
       def simulate_error_on_delete(opts)
@@ -93,7 +93,7 @@ module Caldecott
           @conn.should_receive(:trigger_on_close) { EM.stop }
           @request = stub_request(:get, "#{@uri}/1")
           @request.to_return(:status => opts[:response_code]) if opts[:response_code]
-          reader = Caldecott::Client::HttpTunnel::Reader.new(@log, @uri, @conn)
+          reader = Caldecott::Client::HttpTunnel::Reader.new(@log, @uri, @conn, @auth_token)
 
           @validate = lambda do
             requests_expected = opts[:requests_expected]
@@ -109,7 +109,7 @@ module Caldecott
           @conn.should_receive(:trigger_on_close) { EM.stop }
           @request = stub_request(:put, "#{@uri}/1")
           @request.to_return(:status => opts[:response_code]) if opts[:response_code]
-          writer = Caldecott::Client::HttpTunnel::Writer.new(@log, @uri, @conn)
+          writer = Caldecott::Client::HttpTunnel::Writer.new(@log, @uri, @conn, @auth_token)
           EM.next_tick { writer.send_data data }
 
           @validate = lambda do

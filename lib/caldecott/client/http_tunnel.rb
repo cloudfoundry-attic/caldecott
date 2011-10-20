@@ -8,8 +8,8 @@ module Caldecott
     class HttpTunnel
       MAX_RETRIES = 10
 
-      def initialize(logger, url, dst_host, dst_port)
-        @log = logger
+      def initialize(logger, url, dst_host, dst_port, auth_token)
+        @log, @auth_token = logger, auth_token
         @closing = false
         @retries = 0
         init_msg = ""
@@ -75,7 +75,7 @@ module Caldecott
           parsed_uri.path = '/tunnels'
 
           @log.debug "post #{parsed_uri.to_s}"
-          req = EM::HttpRequest.new(parsed_uri.to_s).post :body => init_msg
+          req = EM::HttpRequest.new(parsed_uri.to_s).post :body => init_msg, :head => { "Auth-Token" => @auth_token }
 
           req.callback do
             @log.debug "post #{parsed_uri.to_s} #{req.response_header.status}"
@@ -89,10 +89,10 @@ module Caldecott
               @tun_uri = parsed_uri.to_s
 
               parsed_uri.path = resp["path_out"]
-              @reader = Reader.new(@log, parsed_uri.to_s, self)
+              @reader = Reader.new(@log, parsed_uri.to_s, self, @auth_token)
 
               parsed_uri.path = resp["path_in"]
-              @writer = Writer.new(@log, parsed_uri.to_s, self)
+              @writer = Writer.new(@log, parsed_uri.to_s, self, @auth_token)
               trigger_on_open
             end
           end
@@ -118,7 +118,7 @@ module Caldecott
         return if @tun_uri.nil?
 
         @log.debug "delete #{@tun_uri}"
-        req = EM::HttpRequest.new("#{@tun_uri}").delete
+        req = EM::HttpRequest.new("#{@tun_uri}").delete :head => { "Auth-Token" => @auth_token }
 
         req.errback do
           @log.debug "delete #{@tun_uri} error"
@@ -136,8 +136,8 @@ module Caldecott
       end
 
       class Reader
-        def initialize(log, uri, conn)
-          @log, @base_uri, @conn = log, uri, conn
+        def initialize(log, uri, conn, auth_token)
+          @log, @base_uri, @conn, @auth_token = log, uri, conn
           @retries = 0
           @closing = false
           start
@@ -156,7 +156,7 @@ module Caldecott
           return if @closing
           uri = "#{@base_uri}/#{seq}"
           @log.debug "get #{uri}"
-          req = EM::HttpRequest.new(uri).get :timeout => 0
+          req = EM::HttpRequest.new(uri).get :timeout => 0, :head => { "Auth-Token" => @auth_token }
 
           req.errback do
             @log.debug "get #{uri} error"
@@ -180,8 +180,8 @@ module Caldecott
       end
 
       class Writer
-        def initialize(log, uri, conn)
-          @log, @uri, @conn = log, uri, conn
+        def initialize(log, uri, conn, auth_token)
+          @log, @uri, @conn, @auth_token = log, uri, conn, auth_token
           @retries = 0
           @seq, @write_buffer = 1, ""
           @closing = @writing = false
@@ -208,7 +208,7 @@ module Caldecott
           @writing = true
           uri = "#{@uri}/#{@seq}"
           @log.debug "put #{uri}"
-          req = EM::HttpRequest.new(uri).put :body => data
+          req = EM::HttpRequest.new(uri).put :body => data, :head => { "Auth-Token" => @auth_token }
 
           req.errback do
             @log.debug "put #{uri} error"

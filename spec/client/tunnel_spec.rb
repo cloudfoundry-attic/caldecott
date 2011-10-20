@@ -13,18 +13,26 @@ describe 'Client Tunnel' do
     @auth_token = 'this_is_an_auth_token'
   end
 
-  # FIXME: we need an https and wss test
-
   it 'should start an http tunnel when given a http url' do
     url = 'http://tunnel.com/'
     Caldecott::Client::HttpTunnel.should_receive(:new).once.with(@log, url, @host, @port, @auth_token)
     Caldecott::Client::Tunnel.start(@log, url, @host, @port, @auth_token)
   end
 
-  it 'should start a websocket tunnel when given a websocket url' do
+  it 'should start an https tunnel when given a https url' do
+    url = 'https://tunnel.com/'
+    Caldecott::Client::HttpTunnel.should_receive(:new).once.with(@log, url, @host, @port, @auth_token)
+    Caldecott::Client::Tunnel.start(@log, url, @host, @port, @auth_token)
+  end
+
+  it 'should start a websocket tunnel when given a ws url' do
     url = 'ws://tunnel.com/'
     Caldecott::Client::WebSocketTunnel.should_receive(:new).once.with(@log, url, @host, @port, @auth_token)
     Caldecott::Client::Tunnel.start(@log, url, @host, @port, @auth_token)
+  end
+
+  it 'should start a secure websocket tunnel when given a wss url' do
+    pending "full end-to-end wss testing hasn't been done yet"
   end
 
   it 'should raise an error when given an invalid url' do

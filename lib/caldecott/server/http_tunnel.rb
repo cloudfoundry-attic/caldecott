@@ -162,6 +162,10 @@ module Caldecott
         tun
       end
 
+      before do
+        not_found if env['HTTP_AUTH_TOKEN'] != settings.auth_token
+      end
+
       get '/' do
         return "Caldecott Tunnel (HTTP Transport) #{VERSION}\n"
       end

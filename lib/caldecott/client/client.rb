@@ -5,7 +5,7 @@ require 'eventmachine'
 module Caldecott
   module Client
     def self.sanitize_url(tun_url)
-      tun_url = tun_url =~ /(http|ws).*/i ? tun_url : "http://#{tun_url}"
+      tun_url = tun_url =~ /(http|https|ws).*/i ? tun_url : "https://#{tun_url}"
     end
 
     def self.start(opts)
@@ -15,6 +15,7 @@ module Caldecott
       dst_port   = opts[:dst_port]
       log_file   = opts[:log_file]
       log_level  = opts[:log_level]
+      auth_token = opts[:auth_token]
 
       trap("TERM") { stop }
       trap("INT") { stop }
@@ -34,7 +35,7 @@ module Caldecott
 
           conn.onopen do
             log.debug "local connected"
-            tun = Tunnel.start(log, tun_url, dst_host, dst_port)
+            tun = Tunnel.start(log, tun_url, dst_host, dst_port, auth_token)
           end
 
           tun.onopen do

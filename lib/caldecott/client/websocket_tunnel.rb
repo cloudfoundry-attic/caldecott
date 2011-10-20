@@ -5,7 +5,7 @@ require 'em-http'
 module Caldecott
   module Client
     class WebSocketTunnel
-      def initialize(logger, url, dst_host, dst_port)
+      def initialize(logger, url, dst_host, dst_port, auth_token)
         @ws = EM::HttpRequest.new("#{url}/websocket/#{dst_host}/#{dst_port}").get :timeout => 0
       end
 

@@ -137,7 +137,7 @@ module Caldecott
 
       class Reader
         def initialize(log, uri, conn, auth_token)
-          @log, @base_uri, @conn, @auth_token = log, uri, conn
+          @log, @base_uri, @conn, @auth_token = log, uri, conn, auth_token
           @retries = 0
           @closing = false
           start

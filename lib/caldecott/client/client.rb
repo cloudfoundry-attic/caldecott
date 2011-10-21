@@ -17,13 +17,18 @@ module Caldecott
       log_level  = opts[:log_level]
       auth_token = opts[:auth_token]
 
+      @quiet = opts[:quiet]
+
       trap("TERM") { stop }
       trap("INT") { stop }
 
       tun_url = sanitize_url(tun_url)
 
       EM.run do
-        puts "Starting local server on port #{local_port} to #{tun_url}"
+        unless @quiet
+          puts "Starting local server on port #{local_port} to #{tun_url}"
+        end
+
         EM.start_server("localhost", local_port, TcpConnection) do |conn|
           # avoid races between tunnel setup and incoming local data
           conn.pause
@@ -67,7 +72,7 @@ module Caldecott
     end
 
     def self.stop
-      puts "Caldecott shutting down"
+      puts "Caldecott shutting down" unless @quiet
       EM.stop
     end
   end

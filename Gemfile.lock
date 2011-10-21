@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    caldecott (0.0.1)
+    caldecott (0.0.2)
       addressable (= 2.2.6)
       async_sinatra (= 0.5.0)
       em-http-request (= 0.3.0)

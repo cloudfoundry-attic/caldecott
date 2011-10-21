@@ -163,9 +163,10 @@ module Caldecott
       end
 
       before do
+        @log = SessionLogger.new("server", STDOUT)
+        @log.debug "#{request.request_method} #{request.url}"
         if env['HTTP_AUTH_TOKEN'] != settings.auth_token
-          log = SessionLogger.new("server", STDOUT)
-          log.debug "#{request.request_method} #{request.url} AUTH FAILURE #{env.inspect}"
+          @log.debug "AUTH FAILURE #{env.inspect}"
           not_found
         end
       end
@@ -181,22 +182,16 @@ module Caldecott
       end
 
       apost '/tunnels' do
-        log = SessionLogger.new("server", STDOUT)
-        log.debug "#{request.request_method} #{request.url}"
         req = JSON.parse(request.body.read, :symbolize_names => true)
-        Tunnel.new(log, @@tunnels, req[:host], req[:port]).open(self)
+        Tunnel.new(@log, @@tunnels, req[:host], req[:port]).open(self)
       end
 
       get '/tunnels/:tun' do |tun_id|
-        log = SessionLogger.new("server", STDOUT)
-        log.debug "#{request.request_method} #{request.url}"
         tun = tunnel_from_id(tun_id)
         tun.safe_hash.to_json
       end
 
       delete '/tunnels/:tun' do |tun_id|
-        log = SessionLogger.new("server", STDOUT)
-        log.debug "#{request.request_method} #{request.url}"
         tun = tunnel_from_id(tun_id)
         tun.delete
       end

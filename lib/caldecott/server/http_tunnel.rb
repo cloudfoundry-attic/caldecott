@@ -163,7 +163,11 @@ module Caldecott
       end
 
       before do
-        not_found if env['HTTP_AUTH_TOKEN'] != settings.auth_token
+        if env['HTTP_AUTH_TOKEN'] != settings.auth_token
+          log = SessionLogger.new("server", STDOUT)
+          log.debug "#{request.request_method} #{request.url} AUTH FAILURE #{env.inspect}"
+          not_found
+        end
       end
 
       get '/' do

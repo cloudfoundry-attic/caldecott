@@ -4,3 +4,5 @@
 .bundle
 spec/coverage
 *.gem
+Gemfile.lock
+.rbenv-gemsets

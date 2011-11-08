@@ -1,3 +1,2 @@
 # caldecott
-
-TBD
+TCP over HTTP tunnel.

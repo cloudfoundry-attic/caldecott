@@ -11,7 +11,6 @@ module Caldecott
       def initialize(logger, url, dst_host, dst_port, auth_token)
         @log, @auth_token = logger, auth_token
         @closing = false
-        @retries = 0
         init_msg = ""
 
         # FIXME: why is this optional?
@@ -64,8 +63,8 @@ module Caldecott
         @onreceive.call(data)
       end
 
-      def start(base_uri, init_msg)
-        if (@retries += 1) > MAX_RETRIES
+      def start(base_uri, init_msg, attempts = MAX_RETRIES)
+        if attempts <= 0
           trigger_on_close
           return
         end
@@ -80,9 +79,8 @@ module Caldecott
           req.callback do
             @log.debug "post #{parsed_uri.to_s} #{req.response_header.status}"
             unless [200, 201, 204].include?(req.response_header.status)
-              start(base_uri, init_msg)
+              start(base_uri, init_msg, attempts - 1)
             else
-              @retries = 0
               resp = JSON.parse(req.response)
 
               parsed_uri.path = resp["path"]
@@ -99,7 +97,7 @@ module Caldecott
 
           req.errback do
             @log.debug "post #{parsed_uri.to_s} error"
-            start(base_uri, init_msg)
+            start(base_uri, init_msg, attempts - 1)
           end
 
         rescue Exception => e
@@ -109,8 +107,8 @@ module Caldecott
         end
       end
 
-      def stop
-        if (@retries += 1) > MAX_RETRIES
+      def stop(attempts = MAX_RETRIES)
+        if attempts <= 0
           trigger_on_close
           return
         end
@@ -122,7 +120,7 @@ module Caldecott
 
         req.errback do
           @log.debug "delete #{@tun_uri} error"
-          stop
+          stop(attempts - 1)
         end
 
         req.callback do
@@ -130,7 +128,7 @@ module Caldecott
           if [200, 202, 204, 404].include?(req.response_header.status)
             trigger_on_close
           else
-            stop
+            stop(attempts - 1)
           end
         end
       end
@@ -138,7 +136,6 @@ module Caldecott
       class Reader
         def initialize(log, uri, conn, auth_token)
           @log, @base_uri, @conn, @auth_token = log, uri, conn, auth_token
-          @retries = 0
           @closing = false
           start
         end
@@ -147,8 +144,8 @@ module Caldecott
           @closing = true
         end
 
-        def start(seq = 1)
-          if (@retries += 1) > MAX_RETRIES
+        def start(seq = 1, attempts = MAX_RETRIES)
+          if attempts <= 0
             @conn.trigger_on_close
             return
           end
@@ -168,7 +165,6 @@ module Caldecott
             case req.response_header.status
             when 200
               @conn.trigger_on_receive(req.response)
-              @retries = 0
               start(seq + 1)
             when 404
               @conn.trigger_on_close
@@ -182,7 +178,6 @@ module Caldecott
       class Writer
         def initialize(log, uri, conn, auth_token)
           @log, @uri, @conn, @auth_token = log, uri, conn, auth_token
-          @retries = 0
           @seq, @write_buffer = 1, ""
           @closing = @writing = false
         end
@@ -196,8 +191,9 @@ module Caldecott
           @closing = true
         end
 
-        def send_data_buffered
-          if (@retries += 1) > MAX_RETRIES
+        def send_data_buffered(attempts = MAX_RETRIES)
+          @log.debug "attempts left: #{attempts}"
+          if attempts <= 0
             @conn.trigger_on_close
             return
           end
@@ -213,7 +209,7 @@ module Caldecott
 
           req.errback do
             @log.debug "put #{uri} error"
-            send_data_buffered
+            send_data_buffered(attempts - 1)
           end
 
           req.callback do
@@ -222,12 +218,11 @@ module Caldecott
             when 200, 202, 204
               @writing = false
               @seq += 1
-              @retries = 0
               send_data_buffered unless @write_buffer.empty?
             when 404
               @conn.trigger_on_close
             else
-              send_data_buffered
+              send_data_buffered(attempts - 1)
             end
           end
         end

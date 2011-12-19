@@ -75,7 +75,7 @@ module Caldecott
           parsed_uri.path = '/tunnels'
 
           @log.debug "post #{parsed_uri.to_s}"
-          req = EM::HttpRequest.new(parsed_uri.to_s).post :body => init_msg, :head => { "Auth-Token" => @auth_token }
+          req = EM::HttpRequest.new(parsed_uri.to_s).post :body => init_msg, :head => { "Auth-Token" => @auth_token, "Content-Length" => init_msg.bytesize }
 
           req.callback do
             @log.debug "post #{parsed_uri.to_s} #{req.response_header.status}"
@@ -210,7 +210,7 @@ module Caldecott
 
           uri = "#{@uri}/#{@seq}"
           @log.debug "put #{uri}"
-          req = EM::HttpRequest.new(uri).put :body => data, :head => { "Auth-Token" => @auth_token }
+          req = EM::HttpRequest.new(uri).put :body => data, :head => { "Auth-Token" => @auth_token, "Content-Length" => data.bytesize }
 
           req.errback do
             @log.debug "put #{uri} error"

@@ -244,5 +244,40 @@ describe 'Client HTTP Tunnel' do
         end
       end
     end
+
+    it 'should not consume retries when already writing' do
+      with_em_timeout do
+        writer = Caldecott::Client::HttpTunnel::Writer.new(@log, @uri, @conn, @auth_token)
+
+        spam = Caldecott::Client::HttpTunnel::MAX_RETRIES * 10
+
+        got = ""
+        finished = {}
+        spam.times do |i|
+          stub_request(:put, "#{@uri}/#{i + 1}").with do |request|
+            # for some reason this callback gets executed twice,
+            # even though only one request is sent
+            unless finished[i]
+              finished[i] = true
+              got << request.body
+            end
+
+            true
+          end
+        end
+
+        expected = ""
+        spam.times do |i|
+          EM.next_tick do
+            expected << "data #{i}\n"
+            writer.send_data "data #{i}\n"
+          end
+        end
+
+        @validate = lambda do
+          got.should == expected
+        end
+      end
+    end
   end
 end

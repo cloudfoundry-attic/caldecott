@@ -189,7 +189,7 @@ module Caldecott
 
         def send_data(data)
           @write_buffer << data
-          send_data_buffered
+          send_data_buffered unless @writing
         end
 
         def close
@@ -197,15 +197,17 @@ module Caldecott
         end
 
         def send_data_buffered
+          return if @closing
+
           if (@retries += 1) > MAX_RETRIES
             @conn.trigger_on_close
             return
           end
 
-          return if @closing
-          data, @write_buffer = @write_buffer, "" unless @writing
-
           @writing = true
+
+          data, @write_buffer = @write_buffer, ""
+
           uri = "#{@uri}/#{@seq}"
           @log.debug "put #{uri}"
           req = EM::HttpRequest.new(uri).put :body => data, :head => { "Auth-Token" => @auth_token }
@@ -219,10 +221,14 @@ module Caldecott
             @log.debug "put #{uri} #{req.response_header.status}"
             case req.response_header.status
             when 200, 202, 204
-              @writing = false
               @seq += 1
               @retries = 0
-              send_data_buffered unless @write_buffer.empty?
+
+              if @write_buffer.empty?
+                @writing = false
+              else
+                send_data_buffered
+              end
             when 404
               @conn.trigger_on_close
             else

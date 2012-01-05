@@ -29,7 +29,7 @@ module Caldecott
           puts "Starting local server on port #{local_port} to #{tun_url}"
         end
 
-        EM.start_server("localhost", local_port, TcpConnection) do |conn|
+        EM.start_server("0.0.0.0", local_port, TcpConnection) do |conn|
           # avoid races between tunnel setup and incoming local data
           conn.pause
 

@@ -158,7 +158,7 @@ module Caldecott
 
           req.errback do
             @log.debug "get #{uri} error"
-            start(seq)
+            start(seq, attempts - 1)
           end
 
           req.callback do
@@ -170,7 +170,7 @@ module Caldecott
             when 404
               @conn.trigger_on_close
             else
-              start(seq)
+              start(seq, attempts - 1)
             end
           end
         end

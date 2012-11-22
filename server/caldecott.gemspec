@@ -14,6 +14,8 @@ spec = Gem::Specification.new do |s|
   s.platform = Gem::Platform::RUBY
   s.extra_rdoc_files = ["README.md", "LICENSE"]
 
+  s.add_dependency "caldecott-client", "~> 0.0.1"
+
   s.add_dependency "em-http-request", "~> 0.3.0"
   s.add_dependency "em-websocket",    "~> 0.3.1"
   s.add_dependency "async_sinatra",   "~> 0.5.0"

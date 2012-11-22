@@ -6,3 +6,4 @@ spec/coverage
 *.gem
 Gemfile.lock
 .rbenv-gemsets
+.idea

@@ -14,12 +14,7 @@ spec = Gem::Specification.new do |s|
   s.platform = Gem::Platform::RUBY
   s.extra_rdoc_files = ["README.md", "LICENSE"]
 
-  s.add_dependency "em-http-request", "~> 0.3.0"
-  s.add_dependency "em-websocket",    "~> 0.3.1"
-  s.add_dependency "async_sinatra",   "~> 0.5.0"
-  s.add_dependency "addressable",     "~> 2.2.6"
-  s.add_dependency "json",            "~> 1.6.1"
-  s.add_dependency "uuidtools",       "~> 2.1.2"
+  s.add_dependency "json", "~> 1.6.1"
 
   s.add_development_dependency "rake",      "~> 0.9.2"
   s.add_development_dependency "rcov",      "~> 0.9.10"

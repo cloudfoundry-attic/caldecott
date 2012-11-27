@@ -1,9 +1,9 @@
 # Copyright (c) 2009-2011 VMware, Inc.
 
 require File.join(File.dirname(__FILE__), 'spec_helper')
-require 'caldecott/client/tunnel.rb'
-require 'caldecott/client/http_tunnel.rb'
-require 'caldecott/client/websocket_tunnel.rb'
+require 'caldecott-client/tunnel/tunnel'
+require 'caldecott-client/tunnel/http_tunnel'
+require 'caldecott-client/tunnel/websocket_tunnel'
 
 describe 'Client Tunnel' do
   before do

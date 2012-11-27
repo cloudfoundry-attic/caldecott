@@ -3,7 +3,6 @@
 require File.join(File.dirname(__FILE__), 'spec_helper')
 
 describe 'Client HTTP Tunnel' do
-  include Caldecott::Test
   include Caldecott::Client::Test
 
   before do

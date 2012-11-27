@@ -2,7 +2,7 @@
 
 require 'rubygems'
 
-require 'caldecott/client'
+require 'caldecott-client'
 require 'caldecott/server'
 
 require 'caldecott/session_logger'

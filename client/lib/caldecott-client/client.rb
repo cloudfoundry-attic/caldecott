@@ -1,6 +1,12 @@
 # Copyright (c) 2009-2011 VMware, Inc.
 
 require 'eventmachine'
+require "logger"
+
+$:.unshift(File.join(File.dirname(__FILE__), "tunnel"))
+
+require "tunnel"
+require "http_tunnel"
 
 module Caldecott
   module Client
@@ -33,8 +39,8 @@ module Caldecott
           # avoid races between tunnel setup and incoming local data
           conn.pause
 
-          log = SessionLogger.new("client", log_file)
-          log.level = SessionLogger.severity_from_string(log_level)
+          log = Logger.new(log_file)
+          log.level = Logger.const_get(log_level)
 
           tun = nil
 

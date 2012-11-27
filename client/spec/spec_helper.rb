@@ -1,13 +1,23 @@
 # Copyright (c) 2009-2011 VMware, Inc.
 
-require File.join(File.dirname(__FILE__), '..', 'spec_helper')
-require 'webmock/rspec'
-require "sinatra/async/test"
-require 'caldecott/client/http_tunnel.rb'
+require "webmock/rspec"
+
+$:.unshift File.join(File.dirname(__FILE__), "..", "lib")
+
+require "caldecott-client"
 
 module Caldecott
   module Client
     module Test
+      def with_em_timeout(timeout = 2)
+        EM.run do
+          EM.add_timer(timeout) do
+            @validate.call if @validate
+            EM.stop
+          end
+          yield
+        end
+      end
 
       def tunnel_callbacks
         [:onopen, :onclose, :onreceive]
@@ -123,4 +133,3 @@ module Caldecott
     end
   end
 end
-

@@ -64,6 +64,10 @@ module Caldecott
         def app
           App
         end
+
+        def auth_token
+          AUTH_TOKEN
+        end
       end
 
     end

@@ -215,7 +215,7 @@ describe 'Server' do
     include Caldecott::Test::Server::SinatraTest
 
     before do
-      header 'Auth-Token', AUTH_TOKEN
+      header 'Auth-Token', auth_token
     end
 
     it "should return banner via GET" do
